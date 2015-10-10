@@ -1,7 +1,7 @@
 # FAS-Learner
 An LSTM network which learns the patterns in a simulated FAS system from log messages.
 
-## Output for th learner.lua --hiddenSize {40}
+## Output for th learner.lua --hiddenSize "{40}"
 	{
 	   batchSize : 1479
 	   cutOffNorm : -1
@@ -57,7 +57,7 @@ An LSTM network which learns the patterns in a simulated FAS system from log mes
 	found maxima : 0.037863421230561 at epoch 12
 	Done.
 
-## Output for th learner.lua --hiddenSize {40\,40}
+## Output for th learner.lua --hiddenSize "{40,40}"
 	...
 	Input read. Generating the neural network initial state. InputSize:   35
 	nn.Sequential {
@@ -96,7 +96,7 @@ An LSTM network which learns the patterns in a simulated FAS system from log mes
 	found maxima : 0.059499661933739 at epoch 125
 	Done.
 
-## Output for th learner.lua --hiddenSize {40\,40\,40}
+## Output for th learner.lua --hiddenSize "{40,40,40}"
 	Input read. Generating the neural network initial state. InputSize:   35
 	nn.Sequential {
 	  [input -> (1) -> (2) -> (3) -> (4) -> (5) -> (6) -> (7) -> output]
