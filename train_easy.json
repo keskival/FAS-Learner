@@ -1,0 +1,446 @@
+[
+  {
+    "timestamp": 0,
+    "type": "CRANE1 FORWARD"
+  },
+  {
+    "timestamp": 29004.0,
+    "type": "CRANE1 STOP"
+  },
+  {
+    "timestamp": 29004.0,
+    "type": "CRANE1 BACKWARD"
+  },
+  {
+    "timestamp": 57986.1,
+    "type": "MANUAL_INSPECTION OK"
+  },
+  {
+    "timestamp": 57986.1,
+    "type": "CONVEYOR1 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 58329.0,
+    "type": "CRANE1 STOP"
+  },
+  {
+    "timestamp": 92816.6,
+    "type": "BOWL1 GIVEN"
+  },
+  {
+    "timestamp": 112691.0,
+    "type": "MANUAL_ADD_COMPONENTS1 OK"
+  },
+  {
+    "timestamp": 112691.0,
+    "type": "CONVEYOR2 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 152863.0,
+    "type": "BOWL2 GIVEN"
+  },
+  {
+    "timestamp": 183014.2,
+    "type": "MANUAL_ADD_COMPONENTS2 OK"
+  },
+  {
+    "timestamp": 183014.2,
+    "type": "CONVEYOR3 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 214139.2,
+    "type": "CRANE_INPUT_SUBASSEMBLY_A FORWARD"
+  },
+  {
+    "timestamp": 224350.2,
+    "type": "CRANE_INPUT_SUBASSEMBLY_A STOP"
+  },
+  {
+    "timestamp": 224350.2,
+    "type": "CRANE_INPUT_SUBASSEMBLY_A BACKWARD"
+  },
+  {
+    "timestamp": 234044.2,
+    "type": "CRANE_INPUT_SUBASSEMBLY_A STOP"
+  },
+  {
+    "timestamp": 265143.4,
+    "type": "MANUAL_COMBINE_SUBASSEMBLY_A OK"
+  },
+  {
+    "timestamp": 265143.4,
+    "type": "CONVEYOR4 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 294081.4,
+    "type": "CONVEYOR_INPUT_SUBASSEMBLY_B CONVEYOR GATE"
+  },
+  {
+    "timestamp": 348459.9,
+    "type": "MANUAL_COMBINE_SUBASSEMBLY_B OK"
+  },
+  {
+    "timestamp": 348459.9,
+    "type": "CONVEYOR6 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 383210.9,
+    "type": "BOWL3 GIVEN"
+  },
+  {
+    "timestamp": 383210.9,
+    "type": "CONVEYOR7 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 489213.1,
+    "type": "MANUAL_ADD_COVER_AND_BOLTS OK"
+  },
+  {
+    "timestamp": 489213.1,
+    "type": "CONVEYOR8 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 546839.7,
+    "type": "MANUAL_TIGHTEN_BOLTS1 OK"
+  },
+  {
+    "timestamp": 546839.7,
+    "type": "CONVEYOR9 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 575444.7,
+    "type": "CONVEYOR_INPUT_SUBASSEMBLY_C CONVEYOR GATE"
+  },
+  {
+    "timestamp": 635413.7,
+    "type": "MANUAL_COMBINE_SUBASSEMBLY_C OK"
+  },
+  {
+    "timestamp": 635413.7,
+    "type": "CONVEYOR11 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 673620.7,
+    "type": "MANUAL_TIGHTEN_BOLTS2 OK"
+  },
+  {
+    "timestamp": 673620.7,
+    "type": "CONVEYOR12 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 700020.5,
+    "type": "BOWL4 GIVEN"
+  },
+  {
+    "timestamp": 712888.3,
+    "type": "MANUAL_ADD_COMPONENTS3 OK"
+  },
+  {
+    "timestamp": 712888.3,
+    "type": "CONVEYOR13 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 771482.1,
+    "type": "MANUAL_TIGHTEN_BOLTS3 OK"
+  },
+  {
+    "timestamp": 771482.1,
+    "type": "CONVEYOR14 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 793242.3,
+    "type": "CRANE1 FORWARD"
+  },
+  {
+    "timestamp": 824469.3,
+    "type": "CRANE1 STOP"
+  },
+  {
+    "timestamp": 824469.3,
+    "type": "CRANE1 BACKWARD"
+  },
+  {
+    "timestamp": 855303.3,
+    "type": "CRANE1 STOP"
+  },
+  {
+    "timestamp": 855303.3,
+    "type": "CRANE1 FORWARD"
+  },
+  {
+    "timestamp": 857243.9,
+    "type": "MANUAL_INSPECTION OK"
+  },
+  {
+    "timestamp": 857243.9,
+    "type": "CONVEYOR1 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 886770.3,
+    "type": "CRANE1 STOP"
+  },
+  {
+    "timestamp": 886770.3,
+    "type": "CRANE1 BACKWARD"
+  },
+  {
+    "timestamp": 890705.4,
+    "type": "BOWL1 GIVEN"
+  },
+  {
+    "timestamp": 911615.1,
+    "type": "MANUAL_ADD_COMPONENTS1 OK"
+  },
+  {
+    "timestamp": 911615.1,
+    "type": "CONVEYOR2 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 916545.3,
+    "type": "CRANE1 STOP"
+  },
+  {
+    "timestamp": 930367.4,
+    "type": "MANUAL_INSPECTION OK"
+  },
+  {
+    "timestamp": 930367.4,
+    "type": "CONVEYOR1 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 952698.1,
+    "type": "BOWL2 GIVEN"
+  },
+  {
+    "timestamp": 966258.4,
+    "type": "BOWL1 GIVEN"
+  },
+  {
+    "timestamp": 989847.7,
+    "type": "MANUAL_ADD_COMPONENTS1 OK"
+  },
+  {
+    "timestamp": 989847.7,
+    "type": "CONVEYOR2 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 992841.9,
+    "type": "MANUAL_ADD_COMPONENTS2 OK"
+  },
+  {
+    "timestamp": 992841.9,
+    "type": "CONVEYOR3 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1023891.9,
+    "type": "CRANE_INPUT_SUBASSEMBLY_A FORWARD"
+  },
+  {
+    "timestamp": 1030629.7,
+    "type": "BOWL2 GIVEN"
+  },
+  {
+    "timestamp": 1034244.9,
+    "type": "CRANE_INPUT_SUBASSEMBLY_A STOP"
+  },
+  {
+    "timestamp": 1034244.9,
+    "type": "CRANE_INPUT_SUBASSEMBLY_A BACKWARD"
+  },
+  {
+    "timestamp": 1044337.9,
+    "type": "CRANE_INPUT_SUBASSEMBLY_A STOP"
+  },
+  {
+    "timestamp": 1056959.3,
+    "type": "MANUAL_ADD_COMPONENTS2 OK"
+  },
+  {
+    "timestamp": 1056959.3,
+    "type": "CONVEYOR3 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1067190.9,
+    "type": "MANUAL_COMBINE_SUBASSEMBLY_A OK"
+  },
+  {
+    "timestamp": 1067190.9,
+    "type": "CONVEYOR4 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1086182.3,
+    "type": "CRANE_INPUT_SUBASSEMBLY_A FORWARD"
+  },
+  {
+    "timestamp": 1095844.3,
+    "type": "CRANE_INPUT_SUBASSEMBLY_A STOP"
+  },
+  {
+    "timestamp": 1095844.3,
+    "type": "CRANE_INPUT_SUBASSEMBLY_A BACKWARD"
+  },
+  {
+    "timestamp": 1096683.9,
+    "type": "CONVEYOR_INPUT_SUBASSEMBLY_B CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1106103.3,
+    "type": "CRANE_INPUT_SUBASSEMBLY_A STOP"
+  },
+  {
+    "timestamp": 1129946.3,
+    "type": "MANUAL_COMBINE_SUBASSEMBLY_A OK"
+  },
+  {
+    "timestamp": 1129946.3,
+    "type": "CONVEYOR4 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1138683.9,
+    "type": "MANUAL_COMBINE_SUBASSEMBLY_B OK"
+  },
+  {
+    "timestamp": 1138683.9,
+    "type": "CONVEYOR6 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1158788.3,
+    "type": "CONVEYOR_INPUT_SUBASSEMBLY_B CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1173784.9,
+    "type": "BOWL3 GIVEN"
+  },
+  {
+    "timestamp": 1173784.9,
+    "type": "CONVEYOR7 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1210335.3,
+    "type": "MANUAL_COMBINE_SUBASSEMBLY_B OK"
+  },
+  {
+    "timestamp": 1210335.3,
+    "type": "CONVEYOR6 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1245833.8,
+    "type": "BOWL3 GIVEN"
+  },
+  {
+    "timestamp": 1245833.8,
+    "type": "CONVEYOR7 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1276935.3,
+    "type": "MANUAL_ADD_COVER_AND_BOLTS OK"
+  },
+  {
+    "timestamp": 1276935.3,
+    "type": "CONVEYOR8 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1341158.7,
+    "type": "MANUAL_TIGHTEN_BOLTS1 OK"
+  },
+  {
+    "timestamp": 1341158.7,
+    "type": "CONVEYOR9 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1362906.5,
+    "type": "MANUAL_ADD_COVER_AND_BOLTS OK"
+  },
+  {
+    "timestamp": 1362906.5,
+    "type": "CONVEYOR8 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1372544.7,
+    "type": "CONVEYOR_INPUT_SUBASSEMBLY_C CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1416284.7,
+    "type": "MANUAL_TIGHTEN_BOLTS1 OK"
+  },
+  {
+    "timestamp": 1416284.7,
+    "type": "CONVEYOR9 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1433071.7,
+    "type": "MANUAL_COMBINE_SUBASSEMBLY_C OK"
+  },
+  {
+    "timestamp": 1433071.7,
+    "type": "CONVEYOR11 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1445861.7,
+    "type": "CONVEYOR_INPUT_SUBASSEMBLY_C CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1468718.7,
+    "type": "MANUAL_TIGHTEN_BOLTS2 OK"
+  },
+  {
+    "timestamp": 1468718.7,
+    "type": "CONVEYOR12 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1495005.9,
+    "type": "BOWL4 GIVEN"
+  },
+  {
+    "timestamp": 1506960.7,
+    "type": "MANUAL_ADD_COMPONENTS3 OK"
+  },
+  {
+    "timestamp": 1506960.7,
+    "type": "CONVEYOR13 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1525179.7,
+    "type": "MANUAL_COMBINE_SUBASSEMBLY_C OK"
+  },
+  {
+    "timestamp": 1525179.7,
+    "type": "CONVEYOR11 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1557403.2,
+    "type": "MANUAL_TIGHTEN_BOLTS2 OK"
+  },
+  {
+    "timestamp": 1557403.2,
+    "type": "CONVEYOR12 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1559514.7,
+    "type": "MANUAL_TIGHTEN_BOLTS3 OK"
+  },
+  {
+    "timestamp": 1559514.7,
+    "type": "CONVEYOR14 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1582678.5,
+    "type": "BOWL4 GIVEN"
+  },
+  {
+    "timestamp": 1596870.7,
+    "type": "MANUAL_ADD_COMPONENTS3 OK"
+  },
+  {
+    "timestamp": 1596870.7,
+    "type": "CONVEYOR13 CONVEYOR GATE"
+  },
+  {
+    "timestamp": 1650345.3,
+    "type": "MANUAL_TIGHTEN_BOLTS3 OK"
+  },
+  {
+    "timestamp": 1650345.3,
+    "type": "CONVEYOR14 CONVEYOR GATE"
+  }
+]
