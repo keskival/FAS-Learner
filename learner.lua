@@ -28,12 +28,14 @@ cmd:option('--maxOutNorm', 2, '')
 cmd:option('--cutOffNorm', -1, '')
 cmd:option('--trainFile', 'train.json', '')
 cmd:option('--validationFile', 'validation.json', '')
-cmd:option('--hiddenSize', {40}, 'number of hidden units used at output of each recurrent layer. When more than one is specified, LSTMs are stacked')
+cmd:option('--hiddenSize', '{40}', 'number of hidden units used at output of each recurrent layer. When more than one is specified, LSTMs are stacked')
 cmd:option('--seed', 1, '')
 cmd:text()
 
 opt = cmd:parse(arg or {})
 table.print(opt)
+
+loadstring("opt.hiddenSize = "..opt.hiddenSize)()
 
 cutorch.setDevice(opt.useDevice)
 cutorch.manualSeed(opt.seed)
@@ -129,12 +131,15 @@ print("Input read. Generating the neural network initial state. InputSize: ", in
 local prevOutputSize = inputSize
 local model = nn.Sequential()
 model:add(nn.SplitTable(1, 2))
-local rnn = nn.Sequencer(nn.FastLSTM(prevOutputSize, opt.hiddenSize[1]))
-model:add(rnn)
+for i, hiddenSize in ipairs(opt.hiddenSize) do
+  local rnn = nn.Sequencer(nn.FastLSTM(prevOutputSize, hiddenSize))
+  model:add(rnn)
+  prevOutputSize = hiddenSize
+end
 local outputLayers = nn.Sequential()
 
 -- output layer --
-outputLayers:add(nn.Linear(opt.hiddenSize[1], inputSize))
+outputLayers:add(nn.Linear(prevOutputSize, inputSize))
 outputLayers:add(nn.LogSoftMax())
 model:add(nn.Sequencer(outputLayers))
 model:add(nn.JoinTable(1, 1))
@@ -235,4 +240,3 @@ xp:cuda()
 print("Starting experiment...")
 xp:run(ds)
 print("Done.")
-
