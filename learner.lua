@@ -13,12 +13,11 @@ cmd = torch.CmdLine()
 cmd:text()
 cmd:text('Train a system to model a Flexible Assembly System')
 cmd:option('--useDevice', 1, '')
-cmd:option('--learningRate', 0.1, '')
-cmd:option('--uniform', 0.8, 'The initial values are taken from a uniform distribution between negative and positive given value.')
+cmd:option('--learningRate', 0.3, '')
+cmd:option('--uniform', 0.9, 'The initial values are taken from a uniform distribution between negative and positive given value.')
 cmd:option('--lrDecay', 'linear', '')
 cmd:option('--minLR', 0.00001, '')
-cmd:option('--saturateEpoch', 300, '')
--- Note that if you change batchSize, you should also change the Reshape layer
+cmd:option('--saturateEpoch', 500, '')
 cmd:option('--batchSize', 1479, '')
 cmd:option('--schedule', '{}', '')
 cmd:option('--maxWait', 4, '')
@@ -26,8 +25,8 @@ cmd:option('--decayFactor', 0.001, '')
 cmd:option('--momentum', 0, '')
 cmd:option('--maxOutNorm', 2, '')
 cmd:option('--cutOffNorm', -1, '')
-cmd:option('--trainFile', 'train.json', '')
-cmd:option('--validationFile', 'validation.json', '')
+cmd:option('--trainFile', 'train.json', 'The input file used for training')
+cmd:option('--validationFile', 'validation.json', 'The input file used for validation')
 cmd:option('--hiddenSize', '{40}', 'number of hidden units used at output of each recurrent layer. When more than one is specified, LSTMs are stacked')
 cmd:option('--seed', 1, '')
 cmd:text()
@@ -39,6 +38,9 @@ loadstring("opt.hiddenSize = "..opt.hiddenSize)()
 
 cutorch.setDevice(opt.useDevice)
 cutorch.manualSeed(opt.seed)
+
+-- Set this to false to get nngraph output
+local cuda = false
 
 -- Loading the input file --
 local json = require "json"
@@ -88,7 +90,12 @@ for i, event in ipairs(decodedValidation) do
 end
 
 function oneHot(index, inputSize)
-  local oneHotTensor = torch.CudaTensor(inputSize):zero()
+  local oneHotTensor
+  if (cuda) then
+    oneHotTensor = torch.CudaTensor(inputSize):zero()
+  else
+    oneHotTensor = torch.DoubleTensor(inputSize):zero()
+  end
   -- Indexed from 1 to inputSize --
   oneHotTensor[index + 1] = 1.0
   return oneHotTensor
@@ -97,8 +104,16 @@ end
 -- Inputs are indexed with one-hot method from 0 to nextEventId - 1 --
 local inputSize = nextEventId
 
-local trainingInputTensor = torch.CudaTensor(nTraining - 1, inputSize)
-local validationInputTensor = torch.CudaTensor(nValidation - 1, inputSize)
+local trainingInputTensor
+local validationInputTensor
+if (cuda) then
+  trainingInputTensor = torch.CudaTensor(nTraining - 1, inputSize)
+  validationInputTensor = torch.CudaTensor(nValidation - 1, inputSize)
+else
+  trainingInputTensor = torch.DoubleTensor(nTraining - 1, inputSize)
+  validationInputTensor = torch.DoubleTensor(nValidation - 1, inputSize)
+end
+
 -- We will do a delayed self-association here --
 local trainingOutputTensor = torch.LongTensor(nTraining - 1)
 local validationOutputTensor = torch.LongTensor(nValidation - 1)
@@ -129,11 +144,14 @@ print("Input read. Generating the neural network initial state. InputSize: ", in
 -- The input is one-hot coded value in an inputSize size table --
 
 local prevOutputSize = inputSize
-local model = nn.Sequential()
-model:add(nn.SplitTable(1, 2))
+local model_int = nn.Sequential()
+
+local splitLayer = nn.SplitTable(1, 2);
+model_int:add(splitLayer)
+local rnnLayer
 for i, hiddenSize in ipairs(opt.hiddenSize) do
-  local rnn = nn.Sequencer(nn.FastLSTM(prevOutputSize, hiddenSize))
-  model:add(rnn)
+  rnnLayer = nn.Sequencer(nn.FastLSTM(prevOutputSize, hiddenSize))
+  model_int:add(rnnLayer)
   prevOutputSize = hiddenSize
 end
 local outputLayers = nn.Sequential()
@@ -141,9 +159,16 @@ local outputLayers = nn.Sequential()
 -- output layer --
 outputLayers:add(nn.Linear(prevOutputSize, inputSize))
 outputLayers:add(nn.LogSoftMax())
-model:add(nn.Sequencer(outputLayers))
-model:add(nn.JoinTable(1, 1))
-model:add(nn.Reshape(nTraining - 1, inputSize))
+local outputSequencer = nn.Sequencer(outputLayers)
+model_int:add(outputSequencer)
+
+--nn.JoinTable(1, 2)
+local joinLayer = nn.JoinTable(1, 1)
+model_int:add(joinLayer)
+---model:add(nn.Reshape(nTraining - 1, inputSize))
+--model:add(nn.Sequencer(nn.Reshape()))
+
+local model = model_int
 
 -- Initializing the network parameters from uniform distribution --
 for k,param in ipairs(model:parameters()) do
@@ -176,9 +201,50 @@ local validationDataset = dp.DataSet{
   which_set = 'validation'
 }
 local ds = dp.DataSource{
-    train_set = trainingDataset,
-    valid_set = validationDataset
+  train_set = trainingDataset,
+  valid_set = validationDataset
 }
+
+if (cuda == false) then
+  -- We can only drive the nngraph with non-CUDA tensors for some reason.
+  -- With CudaTensors it will fail like this:
+  -- Linear.lua:38: invalid arguments: DoubleTensor number DoubleTensor CudaTensor 
+  --   expected arguments: *DoubleTensor~1D* [DoubleTensor~1D] [double] DoubleTensor~2D DoubleTensor~1D |   
+  --   *DoubleTensor~1D* double [DoubleTensor~1D] double DoubleTensor~2D DoubleTensor~1D
+
+  local graphBatch = trainingDataset:batch(opt.batchSize)
+  local graphInput = graphBatch:inputs():input()
+  local graphNode = nn.Identity()()
+  local graphModel = joinLayer({
+    outputSequencer({
+      rnnLayer({
+        splitLayer(
+          graphNode
+        )
+      })
+    })
+  })
+  local graphModule = nn.gModule({graphNode}, {graphModel})
+
+  -- graphModule:updateOutput(graphInput)
+  local graphPrediction = graphModule:forward(graphInput)
+  local graphOutput = graphBatch:targets():input()
+  local graphCriterion = nn.ModuleCriterion(nn.ClassNLLCriterion(), nil, nn.Convert())
+  local graphError = graphCriterion:forward(graphPrediction, graphOutput)
+  local gradCriterion = graphCriterion:backward(graphPrediction, graphOutput)
+  graphModule:zeroGradParameters()
+  graphModule:backward(graphInput, gradCriterion)
+
+  -- For helping the nngraph to get the real inputs and gradients:
+  -- graphModule:updateOutput(graphInput)
+  -- graphModule:updateGradInput(graphInput, gradCriterion)
+  -- graphModule:accGradParameters(graphInput, gradCriterion)
+
+  print("Outputting graph...")
+  graph.dot(graphModule.fg, 'LSTM_fg', 'LSTM_fg')
+  graph.dot(graphModule.bg, 'LSTM_bg', 'LSTM_bg')
+  print("Outputted graph.")
+end
 
 local trainingOptimizer = dp.Optimizer{
     loss = nn.ModuleCriterion(nn.ClassNLLCriterion(), nil, nn.Convert()),
@@ -235,8 +301,11 @@ xp = dp.Experiment{
     random_seed = os.time(),
     max_epoch = opt.maxEpoch
 }
-print("Converting to CUDA...")
-xp:cuda()
-print("Starting experiment...")
-xp:run(ds)
+if (cuda == true) then
+  -- We will only run the whole training with CUDA.
+  print("Converting to CUDA...")
+  xp:cuda()
+  print("Starting experiment...")
+  xp:run(ds)
+end
 print("Done.")
