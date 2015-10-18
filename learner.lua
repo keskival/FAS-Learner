@@ -22,7 +22,6 @@ cmd:option('--uniform', 0.9, 'The initial values are taken from a uniform distri
 cmd:option('--lrDecay', 'linear', '')
 cmd:option('--minLR', 0.00001, '')
 cmd:option('--saturateEpoch', 500, '')
-cmd:option('--batchSize', 1479, '')
 cmd:option('--schedule', '{}', '')
 cmd:option('--maxWait', 4, '')
 cmd:option('--decayFactor', 0.001, '')
@@ -118,6 +117,9 @@ else
   validationInputTensor = torch.CudaTensor(nValidation - 1, inputSize)
 end
 
+-- We don't use minibatch here, but simply learn a single continuous sequence.
+local batchSize = nTraining - 1
+
 -- We will do a delayed self-association here --
 local trainingOutputTensor = torch.LongTensor(nTraining - 1)
 local validationOutputTensor = torch.LongTensor(nValidation - 1)
@@ -148,14 +150,14 @@ print("Input read. Generating the neural network initial state. InputSize: ", in
 -- The input is one-hot coded value in an inputSize size table --
 
 local prevOutputSize = inputSize
-local model_int = nn.Sequential()
+local model = nn.Sequential()
 
 local splitLayer = nn.SplitTable(1, 2);
-model_int:add(splitLayer)
+model:add(splitLayer)
 local rnnLayers = {}
 for i, hiddenSize in ipairs(opt.hiddenSize) do
   local rnnLayer = nn.Sequencer(nn.FastLSTM(prevOutputSize, hiddenSize))
-  model_int:add(rnnLayer)
+  model:add(rnnLayer)
   rnnLayers[i] = rnnLayer
   prevOutputSize = hiddenSize
 end
@@ -165,22 +167,50 @@ local outputLayers = nn.Sequential()
 outputLayers:add(nn.Linear(prevOutputSize, inputSize))
 outputLayers:add(nn.LogSoftMax())
 local outputSequencer = nn.Sequencer(outputLayers)
-model_int:add(outputSequencer)
+model:add(outputSequencer)
 
---nn.JoinTable(1, 2)
+-- We want an inverse operation for nn.SplitTable(1, 2)
 local joinLayer = nn.JoinTable(1, 1)
-model_int:add(joinLayer)
-local reshapeLayer = nn.Reshape(nTraining - 1, inputSize)
-model_int:add(reshapeLayer)
+model:add(joinLayer)
+local reshapeLayer = nn.Reshape(batchSize, inputSize)
+model:add(reshapeLayer)
 
-local model = model_int
+-- The model is as follows:
+-- -> torch.CudaTensor(nTraining - 1, inputSize)
+-- Minibatching:
+-- -> torch.CudaTensor(batchSize, inputSize)
+-- nn.Sequential {
+--   [input -> (1) -> (2) -> (3) -> (4) -> (5) -> output]
+--   -> torch.CudaTensor(batchSize, inputSize)
+--   (1): nn.SplitTable(1,2)
+--   -> Table(torch.CudaTensor(inputSize), batchSize)
+--     Note: The step 2 can be repeated depending on command line arguments for multilayer LSTMs.
+--   (2): nn.Sequencer @ nn.FastLSTM
+--   -> torch.CudaTensor(inputSize)
+--   -> torch.CudaTensor(hiddenLayerSize)
+--   -> Table(torch.CudaTensor(batchSize), hiddenLayerSize)
+--   (3): nn.Sequencer @ nn.Sequential {
+--     [input -> (1) -> (2) -> output]
+--     -> torch.CudaTensor(hiddenLayerSize)
+--     (1): nn.Linear(hiddenLayerSize -> inputSize)
+--     -> torch.CudaTensor(inputSize)
+--     (2): nn.LogSoftMax
+--     -> torch.CudaTensor(inputSize)
+--   }
+--   -> Table(torch.CudaTensor(inputSize), batchSize)
+--   (4): nn.JoinTable(1,1)
+--   -> Table(torch.CudaTensor(inputSize), batchSize)
+--   (5): nn.Reshape(batchSize x inputSize)
+--   -> Table(torch.CudaTensor(batchSize, inputSize)
+-- }
+
+
 
 -- Initializing the network parameters from uniform distribution --
 for k,param in ipairs(model:parameters()) do
   param:uniform(-opt.uniform, opt.uniform)
 end
 
--- Evaluates a single sequence (no minibatch) --
 model:remember('both')
 
 print(model)
@@ -217,7 +247,7 @@ if (opt.nngraph == 1) then
   --   expected arguments: *DoubleTensor~1D* [DoubleTensor~1D] [double] DoubleTensor~2D DoubleTensor~1D |   
   --   *DoubleTensor~1D* double [DoubleTensor~1D] double DoubleTensor~2D DoubleTensor~1D
 
-  local graphBatch = trainingDataset:batch(opt.batchSize)
+  local graphBatch = trainingDataset:batch(batchSize)
   local graphInput = graphBatch:inputs():input()
   local graphNode = nn.Identity()()
   local graphInputLayers = splitLayer(
@@ -287,18 +317,18 @@ local trainingOptimizer = dp.Optimizer{
       model:zeroGradParameters() -- affects gradParams 
     end,
     feedback = dp.Confusion(),
-    sampler = dp.Sampler{batch_size = opt.batchSize}, 
+    sampler = dp.Sampler{batch_size = batchSize}, 
     acc_update = opt.accUpdate,
     progress = opt.progress
 }
 local validationEvaluator = dp.Evaluator{
     feedback = dp.Confusion(),
-    sampler = dp.Sampler{batch_size = opt.batchSize},
+    sampler = dp.Sampler{batch_size = batchSize},
     progress = opt.progress
 }
 local evaluator = dp.Evaluator{
     feedback = dp.Confusion(),
-    sampler = dp.Sampler{batch_size = opt.batchSize}
+    sampler = dp.Sampler{batch_size = batchSize}
 }
 
 xp = dp.Experiment{
