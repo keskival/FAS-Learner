@@ -1,0 +1,54 @@
+digraph G {
+	graph [bb="0,0,356,1066"];
+	node [label="\N",
+		shape=oval
+	];
+	n1	 [height=1.041,
+		label="Node1\ninput = {}\lgradOutput = {}",
+		pos="178,1028",
+		tooltip="[[C]]:-1",
+		width=2.0925];
+	n2	 [height=1.3356,
+		label="Node2\ninput = {}\lmodule = nn.Reshape(1479x35)\lgradOutput = {}",
+		pos="178,906",
+		tooltip="[learner.lua]:236",
+		width=3.7843];
+	n1 -> n2	 [pos="e,178,954.5 178,990.34 178,982.22 178,973.42 178,964.68"];
+	n3	 [height=1.3356,
+		label="Node3\ninput = {}\lmodule = nn.JoinTable\lgradOutput = {}",
+		pos="178,774",
+		tooltip="[learner.lua]:237",
+		width=2.817];
+	n2 -> n3	 [pos="e,178,822.48 178,857.7 178,849.54 178,840.99 178,832.6"];
+	n4	 [height=2.5142,
+		label="Node4\ninput = {}\lmodule = nn.Sequencer @ nn.Sequential {\l  [input -> (1) -> (2) -> output]\l  (1): nn.Linear(40 -> 35)\l  (2): \
+nn.LogSoftMax\l}\lgradOutput = {}",
+		pos="178,599",
+		tooltip="[learner.lua]:238",
+		width=4.9471];
+	n3 -> n4	 [pos="e,178,689.79 178,725.73 178,717.59 178,708.86 178,699.93"];
+	n5	 [height=1.3356,
+		label="Node5\ninput = {}\lmodule = nn.Sequencer @ nn.FastLSTM\lgradOutput = {}",
+		pos="178,424",
+		tooltip="[learner.lua]:232",
+		width=4.7852];
+	n4 -> n5	 [pos="e,178,472.17 178,508.46 178,499.55 178,490.68 178,482.24"];
+	n6	 [height=1.3356,
+		label="Node6\ninput = {}\lmodule = nn.SplitTable\lgradOutput = {}",
+		pos="178,292",
+		tooltip="[learner.lua]:223",
+		width=2.8742];
+	n5 -> n6	 [pos="e,178,340.48 178,375.7 178,367.54 178,358.99 178,350.6"];
+	n7	 [height=1.3356,
+		label="Node7\ninput = {}\lmodule = nn.Identity\lgradOutput = {}",
+		pos="178,160",
+		tooltip="[learner.lua]:222",
+		width=2.6117];
+	n6 -> n7	 [pos="e,178,208.48 178,243.7 178,235.54 178,226.99 178,218.6"];
+	n8	 [height=1.041,
+		label="Node8\ninput = {}\lgradOutput = {}",
+		pos="178,38",
+		tooltip="[[C]]:-1",
+		width=2.0925];
+	n7 -> n8	 [pos="e,178,75.722 178,111.57 178,103.1 178,94.269 178,85.81"];
+}
