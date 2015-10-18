@@ -29,6 +29,7 @@ cmd:option('--trainFile', 'train.json', 'The input file used for training')
 cmd:option('--validationFile', 'validation.json', 'The input file used for validation')
 cmd:option('--hiddenSize', '{40}', 'number of hidden units used at output of each recurrent layer. When more than one is specified, LSTMs are stacked')
 cmd:option('--seed', 1, '')
+cmd:option('--nngraph', 0, 'Set this to one to print ngraph output.')
 cmd:text()
 
 opt = cmd:parse(arg or {})
@@ -38,9 +39,6 @@ loadstring("opt.hiddenSize = "..opt.hiddenSize)()
 
 cutorch.setDevice(opt.useDevice)
 cutorch.manualSeed(opt.seed)
-
--- Set this to false to get nngraph output
-local cuda = false
 
 -- Loading the input file --
 local json = require "json"
@@ -91,10 +89,11 @@ end
 
 function oneHot(index, inputSize)
   local oneHotTensor
-  if (cuda) then
-    oneHotTensor = torch.CudaTensor(inputSize):zero()
-  else
+  if (opt.nngraph == 1) then
+    -- nngraph does not work with CUDA tensors
     oneHotTensor = torch.DoubleTensor(inputSize):zero()
+  else
+    oneHotTensor = torch.CudaTensor(inputSize):zero()
   end
   -- Indexed from 1 to inputSize --
   oneHotTensor[index + 1] = 1.0
@@ -106,12 +105,13 @@ local inputSize = nextEventId
 
 local trainingInputTensor
 local validationInputTensor
-if (cuda) then
-  trainingInputTensor = torch.CudaTensor(nTraining - 1, inputSize)
-  validationInputTensor = torch.CudaTensor(nValidation - 1, inputSize)
-else
+if (opt.nngraph == 1) then
+  -- nngraph does not work with CUDA tensors
   trainingInputTensor = torch.DoubleTensor(nTraining - 1, inputSize)
   validationInputTensor = torch.DoubleTensor(nValidation - 1, inputSize)
+else
+  trainingInputTensor = torch.CudaTensor(nTraining - 1, inputSize)
+  validationInputTensor = torch.CudaTensor(nValidation - 1, inputSize)
 end
 
 -- We will do a delayed self-association here --
@@ -205,7 +205,7 @@ local ds = dp.DataSource{
   valid_set = validationDataset
 }
 
-if (cuda == false) then
+if (opt.nngraph == 1) then
   -- We can only drive the nngraph with non-CUDA tensors for some reason.
   -- With CudaTensors it will fail like this:
   -- Linear.lua:38: invalid arguments: DoubleTensor number DoubleTensor CudaTensor 
@@ -214,7 +214,7 @@ if (cuda == false) then
 
   local graphBatch = trainingDataset:batch(opt.batchSize)
   local graphInput = graphBatch:inputs():input()
-  local graphNode = nn.Identity()()
+  local graphNode = nn.Linear(opt.batchSize*inputSize,opt.batchSize*inputSize)()
   local graphModel = joinLayer({
     outputSequencer({
       rnnLayer({
@@ -301,7 +301,7 @@ xp = dp.Experiment{
     random_seed = os.time(),
     max_epoch = opt.maxEpoch
 }
-if (cuda == true) then
+if (opt.nngraph == 0) then
   -- We will only run the whole training with CUDA.
   print("Converting to CUDA...")
   xp:cuda()
