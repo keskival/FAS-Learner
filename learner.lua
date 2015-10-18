@@ -7,6 +7,10 @@ require 'nngraph'
 
 nngraph.setDebug(true)
 
+-- Note: For the dot/svg graphs, run with: qlua learner.lua --nngraph 1
+--       (nngraph uses QT).
+--       Otherwise: th learner.lua
+
 -- First we initialize the neural network parameters --
 
 cmd = torch.CmdLine()
@@ -165,8 +169,8 @@ model_int:add(outputSequencer)
 --nn.JoinTable(1, 2)
 local joinLayer = nn.JoinTable(1, 1)
 model_int:add(joinLayer)
----model:add(nn.Reshape(nTraining - 1, inputSize))
---model:add(nn.Sequencer(nn.Reshape()))
+local reshapeLayer = nn.Reshape(nTraining - 1, inputSize)
+model_int:add(reshapeLayer)
 
 local model = model_int
 
@@ -215,12 +219,14 @@ if (opt.nngraph == 1) then
   local graphBatch = trainingDataset:batch(opt.batchSize)
   local graphInput = graphBatch:inputs():input()
   local graphNode = nn.Linear(opt.batchSize*inputSize,opt.batchSize*inputSize)()
-  local graphModel = joinLayer({
-    outputSequencer({
-      rnnLayer({
-        splitLayer(
-          graphNode
-        )
+  local graphModel = reshapeLayer({
+    joinLayer({
+      outputSequencer({
+        rnnLayer({
+          splitLayer(
+            graphNode
+          )
+        })
       })
     })
   })
