@@ -152,10 +152,11 @@ local model_int = nn.Sequential()
 
 local splitLayer = nn.SplitTable(1, 2);
 model_int:add(splitLayer)
-local rnnLayer
+local rnnLayers = {}
 for i, hiddenSize in ipairs(opt.hiddenSize) do
-  rnnLayer = nn.Sequencer(nn.FastLSTM(prevOutputSize, hiddenSize))
+  local rnnLayer = nn.Sequencer(nn.FastLSTM(prevOutputSize, hiddenSize))
   model_int:add(rnnLayer)
+  rnnLayers[i] = rnnLayer
   prevOutputSize = hiddenSize
 end
 local outputLayers = nn.Sequential()
@@ -218,15 +219,24 @@ if (opt.nngraph == 1) then
 
   local graphBatch = trainingDataset:batch(opt.batchSize)
   local graphInput = graphBatch:inputs():input()
-  local graphNode = nn.Linear(opt.batchSize*inputSize,opt.batchSize*inputSize)()
+  local graphNode = nn.Identity()()
+  local graphInputLayers = splitLayer(
+            {graphNode}
+          )
+  -- Adding rnnLayrs for graphing.
+  local graphRnnLayers
+  for k, graphRnnLayer in ipairs(rnnLayers) do 
+    if (graphRnnLayers) then
+      graphRnnLayers = graphRnnLayer({graphRnnLayers})
+    else
+      graphRnnLayers = graphRnnLayer({graphInputLayers})
+    end
+  end
+
   local graphModel = reshapeLayer({
     joinLayer({
       outputSequencer({
-        rnnLayer({
-          splitLayer(
-            graphNode
-          )
-        })
+        graphRnnLayers
       })
     })
   })
