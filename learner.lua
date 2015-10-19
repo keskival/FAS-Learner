@@ -17,11 +17,13 @@ cmd = torch.CmdLine()
 cmd:text()
 cmd:text('Train a system to model a Flexible Assembly System')
 cmd:option('--useDevice', 1, '')
-cmd:option('--learningRate', 0.3, '')
+cmd:option('--learningRate', 0.8, '')
 cmd:option('--uniform', 0.9, 'The initial values are taken from a uniform distribution between negative and positive given value.')
 cmd:option('--lrDecay', 'linear', '')
 cmd:option('--minLR', 0.00001, '')
-cmd:option('--saturateEpoch', 500, '')
+cmd:option('--saturateEpoch', 5000, '')
+cmd:option('--maxEpoch', 5000, '')
+cmd:option('--maxTries', 5000, '')
 cmd:option('--schedule', '{}', '')
 cmd:option('--maxWait', 4, '')
 cmd:option('--decayFactor', 0.001, '')
@@ -30,7 +32,7 @@ cmd:option('--maxOutNorm', 2, '')
 cmd:option('--cutOffNorm', -1, '')
 cmd:option('--trainFile', 'train.json', 'The input file used for training')
 cmd:option('--validationFile', 'validation.json', 'The input file used for validation')
-cmd:option('--hiddenSize', '{40}', 'number of hidden units used at output of each recurrent layer. When more than one is specified, LSTMs are stacked')
+cmd:option('--hiddenSize', '{40,40}', 'number of hidden units used at output of each recurrent layer. When more than one is specified, LSTMs are stacked')
 cmd:option('--seed', 1, '')
 cmd:option('--nngraph', 0, 'Set this to one to print ngraph output.')
 cmd:text()
@@ -60,6 +62,8 @@ local decodedValidation = json.decode(validation)
 local eventIds = {}
 -- A map from event id number to event type string --
 local eventTypes = {}
+-- For assigning weights to the ClassNLLCriterion to prevent it from obsessing over two overrepresented classes.
+local countEventsPerId = {}
 
 local nTraining = #decodedTraining
 local nValidation = #decodedValidation
@@ -78,6 +82,11 @@ for i, event in ipairs(decodedTraining) do
     nextEventId = nextEventId + 1
     classes[nextEventId] = nextEventId
   end
+  if (countEventsPerId[eventIds[event.type]]) then
+    countEventsPerId[eventIds[event.type]] = countEventsPerId[eventIds[event.type]] + 1
+  else
+    countEventsPerId[eventIds[event.type]] = 1
+  end
 end
 for i, event in ipairs(decodedValidation) do
   if (eventIds[event.type]) then
@@ -88,6 +97,11 @@ for i, event in ipairs(decodedValidation) do
     eventTypes[nextEventId] = event.type
     nextEventId = nextEventId + 1
   end
+end
+
+var classWeights = {}
+for i, count in ipairs(countEventsPerId) do
+  classWeights[i] = count / nTraining
 end
 
 function oneHot(index, inputSize)
@@ -275,7 +289,7 @@ if (opt.nngraph == 1) then
   -- graphModule:updateOutput(graphInput)
   local graphPrediction = graphModule:forward(graphInput)
   local graphOutput = graphBatch:targets():input()
-  local graphCriterion = nn.ModuleCriterion(nn.ClassNLLCriterion(), nil, nn.Convert())
+  local graphCriterion = nn.ModuleCriterion(nn.ClassNLLCriterion(classWeights), nil, nn.Convert())
   local graphError = graphCriterion:forward(graphPrediction, graphOutput)
   local gradCriterion = graphCriterion:backward(graphPrediction, graphOutput)
   graphModule:zeroGradParameters()
@@ -291,9 +305,12 @@ if (opt.nngraph == 1) then
   graph.dot(graphModule.bg, 'LSTM_bg', 'LSTM_bg')
   print("Outputted graph.")
 end
+local trainingConfusion = dp.Confusion()
+local validationConfusion = dp.Confusion()
+local evaluationConfusion = dp.Confusion()
 
 local trainingOptimizer = dp.Optimizer{
-    loss = nn.ModuleCriterion(nn.ClassNLLCriterion(), nil, nn.Convert()),
+    loss = nn.ModuleCriterion(nn.ClassNLLCriterion(classWeights), nil, nn.Convert()),
     epoch_callback = function(model, report) -- called every epoch
       if report.epoch > 0 then
          opt.learningRate = opt.learningRate + opt.decayFactor
@@ -314,20 +331,25 @@ local trainingOptimizer = dp.Optimizer{
       model:updateGradParameters(opt.momentum) -- affects gradParams
       model:updateParameters(opt.learningRate) -- affects params
       model:maxParamNorm(opt.maxOutNorm) -- affects params
-      model:zeroGradParameters() -- affects gradParams 
+      model:zeroGradParameters() -- affects gradParams
+      local report = validationConfusion:report() 
+      if (report.confusion and report.confusion.matrix) then
+        print("Validation confusion matrix: ", report.confusion.matrix)
+        print("Validation confusion per_class accuracy: ", report.confusion.per_class.accuracy)
+      end
     end,
-    feedback = dp.Confusion(),
+    feedback = trainingConfusion,
     sampler = dp.Sampler{batch_size = batchSize}, 
     acc_update = opt.accUpdate,
     progress = opt.progress
 }
 local validationEvaluator = dp.Evaluator{
-    feedback = dp.Confusion(),
+    feedback = validationConfusion,
     sampler = dp.Sampler{batch_size = batchSize},
     progress = opt.progress
 }
 local evaluator = dp.Evaluator{
-    feedback = dp.Confusion(),
+    feedback = evaluationConfusion,
     sampler = dp.Sampler{batch_size = batchSize}
 }
 
@@ -355,3 +377,4 @@ if (opt.nngraph == 0) then
   xp:run(ds)
 end
 print("Done.")
+
