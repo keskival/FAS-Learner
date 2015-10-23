@@ -32,7 +32,7 @@ cmd:option('--maxOutNorm', 2, '')
 cmd:option('--cutOffNorm', -1, '')
 cmd:option('--trainFile', 'train.json', 'The input file used for training')
 cmd:option('--validationFile', 'validation.json', 'The input file used for validation')
-cmd:option('--hiddenSize', '{40,40}', 'number of hidden units used at output of each recurrent layer. When more than one is specified, LSTMs are stacked')
+cmd:option('--hiddenSize', '{20,20}', 'number of hidden units used at output of each recurrent layer. When more than one is specified, LSTMs are stacked')
 cmd:option('--seed', 1, '')
 cmd:option('--nngraph', 0, 'Set this to one to print ngraph output.')
 cmd:text()
@@ -99,7 +99,7 @@ for i, event in ipairs(decodedValidation) do
   end
 end
 
-var classWeights = {}
+local classWeights = {}
 for i, count in ipairs(countEventsPerId) do
   classWeights[i] = count / nTraining
 end
@@ -254,6 +254,8 @@ local ds = dp.DataSource{
   valid_set = validationDataset
 }
 
+local classWeightsTensor = torch.CudaTensor(classWeights)
+
 if (opt.nngraph == 1) then
   -- We can only drive the nngraph with non-CUDA tensors for some reason.
   -- With CudaTensors it will fail like this:
@@ -289,7 +291,7 @@ if (opt.nngraph == 1) then
   -- graphModule:updateOutput(graphInput)
   local graphPrediction = graphModule:forward(graphInput)
   local graphOutput = graphBatch:targets():input()
-  local graphCriterion = nn.ModuleCriterion(nn.ClassNLLCriterion(classWeights), nil, nn.Convert())
+  local graphCriterion = nn.ModuleCriterion(nn.ClassNLLCriterion(classWeightsTensor), nil, nn.Convert())
   local graphError = graphCriterion:forward(graphPrediction, graphOutput)
   local gradCriterion = graphCriterion:backward(graphPrediction, graphOutput)
   graphModule:zeroGradParameters()
@@ -310,7 +312,7 @@ local validationConfusion = dp.Confusion()
 local evaluationConfusion = dp.Confusion()
 
 local trainingOptimizer = dp.Optimizer{
-    loss = nn.ModuleCriterion(nn.ClassNLLCriterion(classWeights), nil, nn.Convert()),
+    loss = nn.ModuleCriterion(nn.ClassNLLCriterion(classWeightsTensor), nil, nn.Convert()),
     epoch_callback = function(model, report) -- called every epoch
       if report.epoch > 0 then
          opt.learningRate = opt.learningRate + opt.decayFactor
