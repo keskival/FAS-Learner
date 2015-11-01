@@ -1,0 +1,98 @@
+
+\documentclass[journal]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage{cite}
+\usepackage[cmex10]{amsmath}
+\interdisplaylinepenalty=2500
+\usepackage{algorithmic}
+\usepackage{array}
+\usepackage{url}
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+\ifCLASSOPTIONcompsoc
+  \usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\else
+  \usepackage[caption=false,font=footnotesize]{subfig}
+\fi
+
+\ifCLASSINFOpdf
+  \usepackage[pdftex]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../pdf/}{../jpeg/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  \DeclareGraphicsExtensions{.pdf,.jpeg,.jpg,.png}
+\else
+  % or other class option (dvipsone, dvipdf, if not using dvips). graphicx
+  % will default to the driver specified in the system graphics.cfg if no
+  % driver is specified.
+  \usepackage[dvips]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../eps/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  \DeclareGraphicsExtensions{.eps}
+\fi
+
+%opening
+\title{An LSTM for Detecting Fault Conditions from Event-oriented Data in Flexible Assembly Systems - DRAFT}
+\author{Tero Keski-Valkama}
+
+\begin{document}
+
+\maketitle
+Version: \today
+
+\begin{abstract}
+
+\end{abstract}
+
+\begin{IEEEkeywords}
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+LSTM\ref{LSTM}.
+
+\section{Inferring the Flexible Assembly System}
+
+The purpose of modelling the Flexible Assembly System based on log data is to successfully predict what should happen next, and perhaps
+more importantly, what should not happen next. For the purpose of fault detection in practice
+it is important to correctly designate the largest possible set of events which are relatively unlikely to flag these as potential errors. Thus, a fault detection system
+is better in general if it has a larger set of potential events for a certain time slot which it will flag as errors, and the false positive rate for these is less
+than a set threshold.
+
+In practice a system learning the internal process model from sequences must be able to estimate probabilities of the subsequent events especially in relation to error conditions.
+For a correctly functioning system, we should have a false positive rate smaller than a given value:
+
+$$ N(flagged) / N \leq Tolerance $$
+
+For event sequences representing an error, we need to maximize the probability of catching an error.
+The sequence of events is always assumed to represent either normal operation or an error.
+
+$$ P(Fault(sequence)) + P(Correct(sequence)) = 1 $$
+
+At least for the first fault we can consider the sequence being correct before the fault happens:
+
+$$ Fault(sequence, error_signal) -> Correct(sequence) $$
+
+An error is flagged if the estimated probability for
+the respective event sequence is small enough. Obviously the probability of any sufficiently long stochastic sequence of events against all other possible sequences quickly
+approaches zero.
+
+we have:
+
+$$ max(P(flagged | error)) = min(EstimatedProbability(anomalous_event)), anomalous_event \in event_types, \sum{e}P(event_type) = max(EstimatedProbability) $$
+
+
+\appendices
+
+\bibliographystyle{IEEEtran}
+\bibliography{FAS-Learner}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{tero}}]{Tero Keski-Valkama}
+Tero Keski-Valkama is working as a software architect in Cybercom Finland Oy. He has been programming neural networks since high school.
+\end{IEEEbiography}
+
+\end{document}
+
