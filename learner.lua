@@ -55,7 +55,7 @@ local validationfile = assert(io.open(opt.validationFile, "r"))
 local validation = validationfile:read "*a"
 validationfile:close()
 
-local reportfile = assert(io.open(opt.reportFile, "a"))
+reportfile = assert(io.open(opt.reportFile, "a"))
 
 local decodedTraining = json.decode(training)
 local decodedValidation = json.decode(validation)
@@ -317,9 +317,14 @@ local trainingOptimizer = dp.Optimizer{
     loss = nn.ModuleCriterion(nn.ClassNLLCriterion(classWeightsTensor), nil, nn.Convert()),
     epoch_callback = function(model, report) -- called every epoch
       local validationReport = validationConfusion:report() 
-      if (validationReport.confusion.accuracy) then
-        reportfile:write("{'run': ", opt.name, "', epoch': ", report.epoch, ", 'accuracy': ",
-          validationReport.confusion.accuracy, "},\n")
+      if (validationReport.confusion and validationReport.confusion.accuracy and report.epoch and opt.name) then
+         print(opt.name)
+         reportfile:write("{'run': ", opt.name)
+         print(report.epoch)
+         reportfile:write("', epoch': ", report.epoch)
+         print(validationReport.confusion.accuracy)
+         reportfile:write(", 'accuracy': ",
+           validationReport.confusion.accuracy, "},\n")
       end
 
       if report.epoch > 0 then
@@ -386,5 +391,6 @@ if (opt.nngraph == 0) then
   print("Starting experiment...")
   xp:run(ds)
 end
+reportfile:close()
 print("Done.")
 
