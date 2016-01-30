@@ -16,22 +16,22 @@ nngraph.setDebug(true)
 cmd = torch.CmdLine()
 cmd:text()
 cmd:text('Train a system to model a Flexible Assembly System')
+cmd:option('--name', '1', 'The name of the run for the report')
 cmd:option('--useDevice', 1, '')
 cmd:option('--learningRate', 0.8, '')
 cmd:option('--uniform', 0.9, 'The initial values are taken from a uniform distribution between negative and positive given value.')
 cmd:option('--lrDecay', 'linear', '')
 cmd:option('--minLR', 0.00001, '')
-cmd:option('--saturateEpoch', 5000, '')
-cmd:option('--maxEpoch', 5000, '')
-cmd:option('--maxTries', 5000, '')
-cmd:option('--schedule', '{}', '')
-cmd:option('--maxWait', 4, '')
+cmd:option('--saturateEpoch', 50, '')
+cmd:option('--maxEpoch', 100, '')
+cmd:option('--maxTries', 100, '')
 cmd:option('--decayFactor', 0.001, '')
 cmd:option('--momentum', 0, '')
 cmd:option('--maxOutNorm', 2, '')
 cmd:option('--cutOffNorm', -1, '')
 cmd:option('--trainFile', 'train.json', 'The input file used for training')
 cmd:option('--validationFile', 'validation.json', 'The input file used for validation')
+cmd:option('--reportFile', 'report.json', 'The file for appending final results to')
 cmd:option('--hiddenSize', '{20,20}', 'number of hidden units used at output of each recurrent layer. When more than one is specified, LSTMs are stacked')
 cmd:option('--seed', 1, '')
 cmd:option('--nngraph', 0, 'Set this to one to print ngraph output.')
@@ -54,6 +54,8 @@ inputfile:close()
 local validationfile = assert(io.open(opt.validationFile, "r"))
 local validation = validationfile:read "*a"
 validationfile:close()
+
+local reportfile = assert(io.open(opt.reportFile, "a"))
 
 local decodedTraining = json.decode(training)
 local decodedValidation = json.decode(validation)
@@ -314,6 +316,12 @@ local evaluationConfusion = dp.Confusion()
 local trainingOptimizer = dp.Optimizer{
     loss = nn.ModuleCriterion(nn.ClassNLLCriterion(classWeightsTensor), nil, nn.Convert()),
     epoch_callback = function(model, report) -- called every epoch
+      local validationReport = validationConfusion:report() 
+      if (validationReport.confusion.accuracy) then
+        reportfile:write("{'run': ", opt.name, "', epoch': ", report.epoch, ", 'accuracy': ",
+          validationReport.confusion.accuracy, "},\n")
+      end
+
       if report.epoch > 0 then
          opt.learningRate = opt.learningRate + opt.decayFactor
          opt.learningRate = math.max(opt.minLR, opt.learningRate)
