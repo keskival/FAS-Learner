@@ -318,11 +318,8 @@ local trainingOptimizer = dp.Optimizer{
     epoch_callback = function(model, report) -- called every epoch
       local validationReport = validationConfusion:report() 
       if (validationReport.confusion and validationReport.confusion.accuracy and report.epoch and opt.name) then
-         print(opt.name)
          reportfile:write("{'run': ", opt.name)
-         print(report.epoch)
-         reportfile:write("', epoch': ", report.epoch)
-         print(validationReport.confusion.accuracy)
+         reportfile:write(", 'epoch': ", report.epoch)
          reportfile:write(", 'accuracy': ",
            validationReport.confusion.accuracy, "},\n")
       end
