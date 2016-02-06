@@ -22,9 +22,9 @@ cmd:option('--learningRate', 0.8, '')
 cmd:option('--uniform', 0.9, 'The initial values are taken from a uniform distribution between negative and positive given value.')
 cmd:option('--lrDecay', 'linear', '')
 cmd:option('--minLR', 0.00001, '')
-cmd:option('--saturateEpoch', 50, '')
-cmd:option('--maxEpoch', 100, '')
-cmd:option('--maxTries', 100, '')
+cmd:option('--saturateEpoch', 500, '')
+cmd:option('--maxEpoch', 500, '')
+cmd:option('--maxTries', 500, '')
 cmd:option('--decayFactor', 0.001, '')
 cmd:option('--momentum', 0, '')
 cmd:option('--maxOutNorm', 2, '')
@@ -318,9 +318,9 @@ local trainingOptimizer = dp.Optimizer{
     epoch_callback = function(model, report) -- called every epoch
       local validationReport = validationConfusion:report() 
       if (validationReport.confusion and validationReport.confusion.accuracy and report.epoch and opt.name) then
-         reportfile:write("{'run': ", opt.name)
-         reportfile:write(", 'epoch': ", report.epoch)
-         reportfile:write(", 'accuracy': ",
+         reportfile:write("{\"run\": ", opt.name)
+         reportfile:write(", \"epoch\": ", report.epoch)
+         reportfile:write(", \"accuracy\": ",
            validationReport.confusion.accuracy, "},\n")
       end
 
